@@ -32,15 +32,3 @@ acontece com qualquer programa sem assinatura digital baixado da internet, e
 não indica problema com o arquivo.
 
 Clique em **Mais informações** e depois em **Executar assim mesmo**.
-
-## Para desenvolvedores
-
-O código-fonte está neste repositório. Como abrir no editor, gerar o
-executável, rodar os testes e todo o histórico do port — cada bug encontrado,
-o diagnóstico e a verificação — estão na
-**[documentação técnica](DOCUMENTACAO.md)**.
-
-> **Por que o jogo está zipado no repositório?**
-> O runtime do Godot ocupa 104 MB e o GitHub recusa arquivos acima de 100 MB.
-> Comprimido, cai para 36 MB e cabe. O zip contém só o `SpaceInvaders.exe` e um
-> `LEIAME.txt`.
