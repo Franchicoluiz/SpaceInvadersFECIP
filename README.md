@@ -1,14 +1,35 @@
 # Space Invaders — Godot 4
 
-Port do projeto original (Godot 3.0) para **Godot 4.7.1**, empacotado como
-aplicativo Windows.
+Port do projeto original de [Chuck5ta](https://github.com/Chuck5ta/Godot-Space-Invaders)
+(Godot 3.0, 2018) para **Godot 4.7.1**, com os bugs corrigidos e suíte de testes.
 
-O projeto original permanece intacto em `F:\Godot-Space-Invaders-master`.
+## Jogar (sem instalar nada)
 
-## Jogar
+Baixe **`SpaceInvaders.exe`** na aba
+[**Releases**](https://github.com/Franchicoluiz/SpaceInvadersFECIP/releases)
+e dê dois cliques. Só isso.
 
-Execute `build/SpaceInvaders.exe`. É um arquivo único e autocontido
-(PCK embutido) — não precisa do Godot instalado nem de arquivos ao lado.
+É um arquivo único e autocontido: não precisa do Godot, não precisa extrair
+nada, não precisa de arquivos ao lado. Funciona em qualquer Windows 64 bits.
+
+### Controles
+- **Seta esquerda / direita**: mover
+- **Espaço**: atirar
+
+> **Por que o `.exe` não está no repositório?**
+> O runtime do Godot ocupa 104 MB e o GitHub recusa arquivos acima de 100 MB.
+> Por isso o executável fica em Releases, que aceita até 2 GB. O repositório
+> guarda só o código-fonte (1,5 MB).
+
+## Gerar o executável a partir do código
+
+Precisa do Godot 4.7 com os *export templates* instalados:
+
+```
+godot --headless --path . --export-release "Windows Desktop" build/SpaceInvaders.exe
+```
+
+O resultado é o mesmo arquivo publicado em Releases.
 
 ### Controles
 - **Seta esquerda / direita**: mover
