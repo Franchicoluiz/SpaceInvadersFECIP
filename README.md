@@ -1,0 +1,279 @@
+# Space Invaders — Godot 4
+
+Port do projeto original (Godot 3.0) para **Godot 4.7.1**, empacotado como
+aplicativo Windows.
+
+O projeto original permanece intacto em `F:\Godot-Space-Invaders-master`.
+
+## Jogar
+
+Execute `build/SpaceInvaders.exe`. É um arquivo único e autocontido
+(PCK embutido) — não precisa do Godot instalado nem de arquivos ao lado.
+
+### Controles
+- **Seta esquerda / direita**: mover
+- **Espaço**: atirar
+
+## Abrir no editor
+
+```
+"G:\SteamLibrary\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe" --path "F:\SpaceInvaders-Godot4"
+```
+
+## Regerar o executável
+
+```
+"G:\SteamLibrary\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe" --headless --path "F:\SpaceInvaders-Godot4" --export-release "Windows Desktop" "F:\SpaceInvaders-Godot4\build\SpaceInvaders.exe"
+```
+
+## O que foi alterado na conversão
+
+Além do que o conversor automático (`--convert-3to4`) fez, estas correções
+foram necessárias à mão:
+
+1. **`project.godot`** — o arquivo original era `config_version=3` (Godot 3.0) e o
+   conversor não o atualiza. Reescrito para `config_version=5`. A resolução foi
+   fixada em 1024x768: o original só declarava `height=768` e herdava a largura
+   padrão 1024 do Godot 3 — o Godot 4 usa 1152, o que deformaria o jogo, já que
+   o `Player.gd` limita a posição pelo tamanho da viewport.
+
+2. **`TextureRect.gd` (barreiras destrutíveis)** — era o único bug que quebrava
+   *especificamente o build exportado*. O código fazia
+   `Image.load("res://Art/Barrier.png")` em tempo de execução; no `.exe` o PNG
+   cru não existe (vira `.ctex` importado), então as barreiras falhariam apenas
+   no aplicativo, nunca no editor. Trocado por `load(...).get_image()`, com
+   `decompress()` + `convert(FORMAT_RGBA8)` para manter a imagem gravável pelo
+   `set_pixel()`. Também atualizadas as APIs `image.create()` e
+   `imageTexture.create_from_image()`, que viraram estáticas no Godot 4.
+
+3. **Colisões (12 ocorrências em 5 arquivos)** — `$CollisionShape2D.disabled = X`
+   dentro de handlers de `area_entered` gera erro no Godot 4
+   ("Can't change this state while flushing queries"). Convertido para
+   `set_deferred("disabled", X)`.
+
+4. **`Invader1.gd`** — `AnimatedSprite2D.frames` foi renomeado para
+   `sprite_frames` no Godot 4.
+
+5. **`Sounds/shoot.wav`** — o arquivo **não existe** no repositório original
+   (só sobrou o `.import` órfão), e o `Main.tscn` o referenciava, impedindo a
+   cena principal de carregar. Substituído por `Sounds/FireLaserBolt.wav`, que
+   existe, é o som de tiro do mesmo pacote de assets e não era usado em lugar
+   nenhum.
+
+6. **`default_env.tres`** — Environment 3D em formato Godot 3, sem uso em um
+   jogo 2D. Removido.
+
+## Verificação
+
+O build exportado foi executado por 1200 frames em modo headless com **zero
+erros**, exercitando o caminho de código das barreiras (o ponto de falha do
+item 2). Também roda em janela: o Vulkan não está disponível nesta máquina e o
+Godot cai automaticamente para Direct3D 12 — isso é um aviso, não uma falha.
+
+Testes automatizados de jogabilidade não foram feitos: o modo headless não
+processa entrada, então movimento, tiro e colisão com o jogador precisam de
+conferência manual.
+
+## Bugs de jogabilidade corrigidos (2ª rodada)
+
+O jogo compilava e rodava sem erros no log, mas era **injogável**. Três bugs
+silenciosos, todos encontrados injetando input em execução e medindo o estado:
+
+7. **Invasores invencíveis** (o mais grave) — as cenas `Invader1/2/3.tscn` tinham
+   `collision_mask = 0` na Area2D raiz. No Godot 3, quando uma área detectava
+   outra, **ambas** recebiam `area_entered`; no Godot 4 a detecção é
+   unidirecional, cada área só enxerga o que a própria máscara cobre. Resultado:
+   o tiro registrava a colisão, mas o invasor nunca era notificado e nunca
+   morria. Medido: 3600 frames de tiro contínuo com score 0 e 55 invasores
+   intactos. Corrigido para `collision_mask = 1`.
+
+8. **Game Over a cada abate** — `Invader1.gd` emitia `enteringEarth` (que encerra
+   o jogo) no `screen_exited` do `VisibleOnScreenNotifier2D`. Mas o `hide()` de
+   um invasor recém-abatido também dispara `screen_exited`. Evidência: invasor
+   morto em y=368, numa tela de 768px, emitindo "chegou na Terra" 31 frames
+   depois. Adicionadas as guardas `Alive` e `position.y >= altura da tela`.
+
+9. **Textos a 16px** — os blocos `[sub_resource type="FontFile"]` eram
+   `DynamicFont` do Godot 3 renomeados pela metade: no Godot 4 `FontFile` não
+   tem `size` nem `font_data`, então todo texto caía para o default de 16px em
+   vez de 64/32. Substituídos por referência direta ao `.ttf` mais
+   `theme_override_font_sizes/font_size`.
+
+10. **Nave saindo pela borda** — `clamp(position.x, 0, screensize.x)` limitava o
+    *centro* do sprite, deixando ~28px da nave fora da tela nos dois extremos.
+    Passa a limitar pela borda. Esta é a única mudança de comportamento em
+    relação ao original — as outras restauram o que o jogo fazia no Godot 3.
+
+## Como os bugs foram verificados
+
+Rodando o jogo com um script `SceneTree` que injeta input via `Input.action_press()`
+e mede o estado quadro a quadro. Resultado final, varrendo a tela e atirando:
+
+```
+[f1000] score=340 inv=29 vidas=2 GameOver=false
+[f2000] score=660 inv=14 vidas=1 GameOver=false
+[f3000] score=800 inv=8  vidas=0 GameOver=true
+```
+
+Score sobe, invasores caem, vidas decrementam e o Game Over dispara em 0 vidas.
+
+**Atenção ao testar em headless:** `VisibleOnScreenNotifier2D` não dispara sem
+renderização, então o tiro nunca "sai da tela" e trava o `LaserBoltExists`. Isso
+é artefato do modo headless, não bug — em janela funciona. Testes de
+jogabilidade precisam rodar com janela.
+
+## Bugs encontrados na 3ª rodada (busca ativa)
+
+Com o jogo já jogável, uma varredura dos caminhos ainda não exercitados achou mais
+dois bugs, ambos da **mesma raiz** e ambos herdados do original:
+
+11. **Fileira 4 nunca se movia** — 11 dos 55 invasores ficavam congelados desde o
+    início da partida, sempre. `Invader1.gd` zerava `Attack` dentro de
+    `_on_VisibilityNotifier2D_screen_entered()`. No Godot 4 esse sinal dispara
+    *depois* dos timers de entrada das fileiras. Como o timer da fileira 4 é o mais
+    rápido (0.1s, contra 0.3–0.9s das outras), ele ativava a fileira e o sinal
+    desligava logo em seguida. As fileiras 0–3 disparavam depois do sinal e
+    escapavam.
+
+12. **Onda 2 completamente travada** — depois de limpar a primeira onda, os 55
+    invasores ficavam parados, sem se mover nem atirar: jogo impossível de
+    continuar. Mesma causa (o `show()` do reset dispara `screen_entered`, que
+    zerava o `Attack` que o reset acabara de ligar), agravada pelo `_new_game()`
+    não reiniciar os timers de entrada das fileiras.
+
+    Correções: removido o `Attack = false` do `screen_entered` (ele já nasce
+    `false` na declaração; quem liga são os timers e `_reset_invader_scene()`), e
+    `_new_game()` passou a chamar `_set_off_invaders()`.
+
+Antes/depois da ativação por fileira, no boot normal:
+
+```
+antes:  L0=11/11 L1=11/11 L2=11/11 L3=11/11 L4=0/11    <- fileira 4 morta
+depois: L0=11/11 L1=11/11 L2=11/11 L3=11/11 L4=11/11
+```
+
+## Suíte de testes
+
+Em `tests/`. Rodam com o jogo de verdade (janela), injetando input via
+`Input.action_press()` e medindo o estado quadro a quadro:
+
+```
+"G:\SteamLibrary\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe" --path "F:\SpaceInvaders-Godot4" --script res://tests/test_wave_e_mothership.gd
+```
+
+| Arquivo | Cobre |
+|---|---|
+| `test_wave_e_mothership.gd` | limpar a onda, mothership, botão NEXT WAVE, reposição de invasores/barreiras, teto de 2 lasers inimigos |
+| `test_barreira_e_invasao.gd` | destruição de pixels da barreira; invasor vivo abaixo da tela causando Game Over |
+| `test_onda2_e_vidas.gd` | movimento dos invasores na onda 2; decremento de vidas 3→0 |
+| `test_reinicio.gd` | Game Over → START → `reload_current_scene()` e estado zerado |
+| `test_ativacao_fileiras.gd` | ativação escalonada das 5 fileiras |
+| `test_soak.gd` | 20.000 frames com reinício automático |
+
+Resultado atual: **25 de 25 asserções passando**, e o soak de 20.000 frames
+(~5,5 min de jogo, com várias mortes e reinícios) sem um único erro de script.
+
+Auditorias estáticas feitas junto: os 55 handlers `_on_InvaderXY_hit` têm índices
+e pontuação corretos (30 no topo, 20/20 no meio, 10/10 na base), e os 55 nós de
+invasor têm as conexões `hit` e `enteringEarth` ligadas aos métodos certos.
+
+## Áudio removido
+
+O jogo agora é totalmente silencioso. Removidos:
+
+- **9 nós `AudioStreamPlayer` e 2 `AudioStreamPlayer2D`** em 5 cenas
+  (`ExplosionSound`, `LaserBoltSound`, `InvaderMovementSound1-4`, `FlyingSound`)
+- **os 11 `ext_resource` de áudio** e a pasta `Sounds/` inteira
+- `default_bus_layout.tres`
+- todas as chamadas `.play()` / `.stop()` nos scripts
+- os timers `InvaderSoundTimer` / `InvaderSoundSpeed` e os handlers da marchinha
+  de quatro notas, que existiam só para o áudio e não influenciavam o jogo
+
+Isso eliminou de quebra um **vazamento de memória**: `_wait()` criava um nó
+`Timer` a cada chamada e nunca o liberava. Como o `InvaderSoundTimer` se repetia
+e acelerava (`wait_time / 1.1` a cada ciclo), o vazamento crescia sem parar
+durante a partida.
+
+O executável continua com ~105 MB: os `.wav` eram pequenos perto do runtime do
+Godot, que domina o tamanho.
+
+## Atalho na Área de Trabalho
+
+Criado `Space Invaders.lnk` na Área de Trabalho, apontando para
+`F:\SpaceInvaders-Godot4\build\SpaceInvaders.exe`.
+
+É um atalho, não uma cópia: regerar o build atualiza o jogo automaticamente. O
+`.exe` em si é portátil — pode ser copiado para qualquer lugar ou outra máquina
+Windows e roda sozinho.
+
+## Áreas que estavam sem verificação, agora cobertas
+
+- **Área clicável do botão START**: validada com clique real de mouse. Um clique
+  120px à esquerda do botão não faz nada; no centro, reinicia o jogo (vidas de
+  volta a 3, 55 invasores, `GameOver` limpo).
+- **Áudio**: em vez de testar que os sons tocam, o teste varre a árvore de nós e
+  exige **zero** players de áudio, confirmando a remoção.
+
+Duas armadilhas de harness descobertas aqui, anotadas nos testes:
+
+1. `Input.parse_input_event()` **não** entrega clique à GUI quando a janela não
+   tem foco do sistema. Para clique é preciso `root.push_input()`. Movimento de
+   mouse (hover) funciona pelos dois caminhos.
+2. O loop do `SceneTree` de teste não roda travado em 60fps (chega a ~195fps),
+   então contar frames não serve de relógio; as esperas precisam acumular
+   `delta`. Foi isso que fez o botão parecer que nunca aparecia — na verdade
+   `show_game_over()` espera 5s reais no `MessageTimer` antes de exibi-lo.
+
+## Estado dos testes
+
+**30 de 30 asserções passando** em 5 suítes (`tests/`), mais o soak de 20.000
+frames sem erros de script.
+
+## Crash ao atirar nas barreiras (segfault)
+
+**Sintoma:** o jogo fechava sozinho ao acertar os blocos verdes.
+
+**Causa:** em `TextureRect.gd`, as contas que convertem a posição do tiro em
+coordenada de pixel usam constantes aproximadas (55/40/110/80/21/15) e não
+tinham nenhum teto. Um tiro perto das bordas da barreira produzia índices fora
+da imagem 22x16 — chegavam a **28** de largura, e o Y podia ficar negativo
+quando o laço de busca já havia levado a linha até 0.
+
+**Por que passou por todos os testes anteriores:** o build do editor checa os
+limites e apenas registra `Index p_x = 28 is out of bounds` no log, seguindo em
+frente. O template de release não faz essa checagem, e o acesso inválido derruba
+o processo. Reproduzido no `.exe`:
+
+```
+Laser bolt has hit the target!
+Laser coords: (604.9042, 592.823)
+Barrier coords: (631.667, 639.97)
+Segmentation fault    exit code 139
+```
+
+**Correção:** `_write_pixel()` foi reescrita. Toda coordenada é convertida para
+inteiro e limitada à imagem antes de qualquer `get_pixel`/`set_pixel`, e as
+escritas que caem fora são descartadas em vez de grampeadas na borda (grampear
+empilharia pixels apagados na coluna da ponta, deformando a cratera). Os dois
+sentidos de tiro passaram a compartilhar o mesmo laço, com passo `+1`/`-1`.
+
+**Verificação:** 656 blasts varrendo X de −150 a +260 em relação à barreira, nos
+dois sentidos e em 4 alturas, com **zero** estouros de limite
+(`tests/test_barreira_limites.gd`). No build exportado, 3 partidas com 187, 118
+e 47 impactos em barreira e um soak de 15.000 frames com 119 impactos — todos
+saindo com **exit 0**.
+
+### Lição para os próximos testes
+
+Testar só no build do editor não basta: ele mascara erros de índice que são
+fatais no `.exe` entregue. Bugs de acesso a pixel/array precisam de uma rodada
+no build exportado.
+
+## O que continua sem verificação
+
+- Nenhum teste cobre a **aparência** do jogo: eles leem estado e posições, não
+  pixels na tela. Sprites trocados ou desalinhados passariam despercebidos.
+- `Area2D.gd` é código morto (não anexado a nenhuma cena) e contém chamadas
+  inválidas (`getName()` / `getname()`). Deixado como está por não afetar nada.
+- O aviso `resources still in use at exit` ao fechar é ruído normal do Godot ao
+  sair via `--quit-after`, não um erro de jogo.

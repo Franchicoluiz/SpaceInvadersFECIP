@@ -1,0 +1,72 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Mothership.gd" type="Script" id=1]
+[ext_resource path="res://Art/Mothership.png" type="Texture2D" id=2]
+[ext_resource path="res://Art/exlodingInvader.png" type="Texture2D" id=5]
+
+[sub_resource type="RectangleShape2D" id=1]
+
+custom_solver_bias = 0.0
+extents = Vector2( 10, 10 )
+
+[node name="Mothership" type="Area2D" index="0"]
+
+position = Vector2( -88.8986, 79.6107 )
+input_pickable = true
+gravity_direction = Vector2( 0, 1 )
+gravity = 98.0
+linear_damp = 0.1
+angular_damp = 1.0
+audio_bus_override = false
+audio_bus_name = ""
+script = ExtResource( 1 )
+_sections_unfolded = [ "Collision" ]
+
+[node name="MothershipSprite" type="Sprite2D" parent="." index="0"]
+
+scale = Vector2( 5, 5 )
+texture = ExtResource( 2 )
+_sections_unfolded = [ "Transform3D" ]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." index="1"]
+
+position = Vector2( -0.592325, -0.21884 )
+scale = Vector2( 4.01869, 1.73924 )
+shape = SubResource( 1 )
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." index="2"]
+
+position = Vector2( 0.0664825, 0.17643 )
+scale = Vector2( 3.97917, 1.80512 )
+rect = Rect2( -10, -10, 20, 20 )
+
+[node name="AppearTimer" type="Timer" parent="." index="3"]
+
+process_mode = 1
+wait_time = 10.0
+one_shot = false
+autostart = false
+
+[node name="ExplosionTimer" type="Timer" parent="." index="5"]
+
+process_mode = 1
+wait_time = 0.25
+one_shot = false
+autostart = false
+
+[node name="ExplosionSprite" type="Sprite2D" parent="." index="7"]
+
+visible = false
+scale = Vector2( 7, 5 )
+texture = ExtResource( 5 )
+_sections_unfolded = [ "Transform3D", "Visibility" ]
+
+[connection signal="area_entered" from="." to="." method="_on_Mothership_area_entered"]
+
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_VisibilityNotifier2D_screen_exited"]
+
+[connection signal="timeout" from="AppearTimer" to="." method="_on_AppearTimer_timeout"]
+
+[connection signal="timeout" from="ExplosionTimer" to="." method="_on_ExplsionTimer_timeout"]
+
+

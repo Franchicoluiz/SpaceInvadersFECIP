@@ -1,0 +1,47 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://LaserBolt.gd" type="Script" id=1]
+[ext_resource path="res://Art/LaserBolt.jpg" type="Texture2D" id=2]
+
+[sub_resource type="RectangleShape2D" id=1]
+
+custom_solver_bias = 0.0
+extents = Vector2( 10, 10 )
+
+[node name="LaserBolt" type="Area2D" index="0"]
+
+position = Vector2( -33.5185, 2.34906 )
+input_pickable = true
+gravity_direction = Vector2( 0, 1 )
+gravity = 98.0
+linear_damp = 0.1
+angular_damp = 1.0
+audio_bus_override = false
+audio_bus_name = ""
+script = ExtResource( 1 )
+_sections_unfolded = [ "Collision" ]
+SPEED = 15
+
+[node name="LaserboltSprite" type="Sprite2D" parent="." index="0"]
+
+scale = Vector2( 0.33, 0.33 )
+texture = ExtResource( 2 )
+_sections_unfolded = [ "Transform3D" ]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." index="1"]
+
+position = Vector2( -0.0421335, -0.0444553 )
+scale = Vector2( 0.25354, 0.615388 )
+shape = SubResource( 1 )
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." index="2"]
+
+position = Vector2( 0.0783553, 0.0132135 )
+scale = Vector2( 0.269235, 0.628215 )
+rect = Rect2( -10, -10, 20, 20 )
+
+[connection signal="area_entered" from="." to="." method="_on_LaserBolt_area_entered"]
+
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_VisibilityNotifier2D_screen_exited"]
+
+

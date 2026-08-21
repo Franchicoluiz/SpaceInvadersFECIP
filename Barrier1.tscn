@@ -1,0 +1,79 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Barrier1.gd" type="Script" id=1]
+[ext_resource path="res://TextureRect.gd" type="Script" id=2]
+[ext_resource path="res://Art/Barrier.png" type="Texture2D" id=3]
+
+[sub_resource type="RectangleShape2D" id=1]
+
+custom_solver_bias = 0.0
+extents = Vector2( 4.9577, 5.04337 )
+
+[node name="Barrier1" type="Area2D" index="0"]
+
+input_pickable = true
+gravity_direction = Vector2( 0, 1 )
+gravity = 98.0
+linear_damp = 0.1
+angular_damp = 1.0
+audio_bus_override = false
+audio_bus_name = ""
+script = ExtResource( 1 )
+_sections_unfolded = [ "Transform3D", "Z Index" ]
+
+[node name="TopRightCollission" type="CollisionShape2D" parent="." index="0"]
+
+position = Vector2( 27.3532, -20.5589 )
+scale = Vector2( 5.51365, 4.04402 )
+z_index = 1
+shape = SubResource( 1 )
+_sections_unfolded = [ "Material", "Transform3D", "Z Index" ]
+
+[node name="TextureRect" type="TextureRect" parent="." index="1"]
+
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 40.0
+offset_bottom = 40.0
+pivot_offset = Vector2( 0, 0 )
+clip_contents = false
+mouse_filter = 1
+mouse_default_cursor_shape = 0
+size_flags_horizontal = 1
+size_flags_vertical = 1
+stretch_mode = 0
+script = ExtResource( 2 )
+
+[node name="BarrierSprite" type="Sprite2D" parent="TextureRect" index="0"]
+
+scale = Vector2( 5, 5 )
+texture = ExtResource( 3 )
+_sections_unfolded = [ "Material", "Transform3D" ]
+
+[node name="BottomLeftCollission" type="CollisionShape2D" parent="." index="2"]
+
+position = Vector2( -27.6469, 20.4411 )
+scale = Vector2( 5.51365, 4.04402 )
+z_index = 1
+shape = SubResource( 1 )
+_sections_unfolded = [ "Material", "Transform3D", "Z Index" ]
+
+[node name="BottomRightCollission" type="CollisionShape2D" parent="." index="3"]
+
+position = Vector2( 27.3532, 20.4411 )
+scale = Vector2( 5.51365, 4.04402 )
+z_index = 1
+shape = SubResource( 1 )
+_sections_unfolded = [ "Material", "Transform3D", "Z Index" ]
+
+[node name="TopLeftCollission" type="CollisionShape2D" parent="." index="4"]
+
+position = Vector2( -27.6468, -20.5589 )
+scale = Vector2( 5.51365, 4.04402 )
+z_index = 1
+shape = SubResource( 1 )
+_sections_unfolded = [ "Material", "Transform3D", "Z Index" ]
+
+

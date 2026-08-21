@@ -1,0 +1,59 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://InvaderLaserBolt.gd" type="Script" id=1]
+[ext_resource path="res://Art/InvaderLaser01.png" type="Texture2D" id=2]
+[ext_resource path="res://Art/InvaderLaser.png" type="Texture2D" id=3]
+
+[sub_resource type="SpriteFrames" id=1]
+
+animations = [ {
+"frames": [ ExtResource( 2 ), ExtResource( 3 ) ],
+"loop": true,
+"name": "laserBolt",
+"speed": 10.0
+} ]
+
+[sub_resource type="RectangleShape2D" id=2]
+
+custom_solver_bias = 0.0
+extents = Vector2( 6.12946, 13.8031 )
+
+[node name="InvaderLaserBolt" type="Area2D" index="0"]
+
+position = Vector2( 518.321, 80.1924 )
+input_pickable = true
+gravity_direction = Vector2( 0, 1 )
+gravity = 98.0
+linear_damp = 0.1
+angular_damp = 1.0
+audio_bus_override = false
+audio_bus_name = ""
+script = ExtResource( 1 )
+_sections_unfolded = [ "Collision", "Transform3D" ]
+SPEED = 5
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." index="0"]
+
+position = Vector2( 1.94061, 1.86904 )
+scale = Vector2( 0.611197, 1.40326 )
+rect = Rect2( -10, -10, 20, 20 )
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." index="1"]
+
+scale = Vector2( 4, 4 )
+frames = SubResource( 1 )
+animation = "laserBolt"
+frame = 1
+_sections_unfolded = [ "Transform3D" ]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." index="2"]
+
+position = Vector2( 1.906, 1.99379 )
+scale = Vector2( 0.989226, 1.01964 )
+shape = SubResource( 2 )
+
+[connection signal="area_entered" from="." to="." method="_on_InvaderLaserBolt_area_entered"]
+
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_VisibilityNotifier2D_screen_exited"]
+
+
