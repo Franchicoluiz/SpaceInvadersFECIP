@@ -5,21 +5,26 @@ Port do projeto original de [Chuck5ta](https://github.com/Chuck5ta/Godot-Space-I
 
 ## Jogar (sem instalar nada)
 
-Baixe **`SpaceInvaders.exe`** na aba
-[**Releases**](https://github.com/Franchicoluiz/SpaceInvadersFECIP/releases)
-e dê dois cliques. Só isso.
+1. Baixe **[SpaceInvaders-Windows.zip](https://github.com/Franchicoluiz/SpaceInvadersFECIP/raw/main/SpaceInvaders-Windows.zip)** (36 MB)
+2. Extraia o arquivo
+3. Dê dois cliques em `SpaceInvaders.exe`
 
-É um arquivo único e autocontido: não precisa do Godot, não precisa extrair
-nada, não precisa de arquivos ao lado. Funciona em qualquer Windows 64 bits.
+Não precisa do Godot nem de mais nada: o executável é autocontido e roda em
+qualquer Windows 64 bits.
 
 ### Controles
 - **Seta esquerda / direita**: mover
 - **Espaço**: atirar
 
-> **Por que o `.exe` não está no repositório?**
+### Se o Windows bloquear
+Na primeira execução pode aparecer *"O Windows protegeu o computador"*. Isso
+acontece com qualquer executável sem assinatura digital baixado da internet.
+Clique em **Mais informações** e depois em **Executar assim mesmo**.
+
+> **Por que zipado, e não o `.exe` direto no repositório?**
 > O runtime do Godot ocupa 104 MB e o GitHub recusa arquivos acima de 100 MB.
-> Por isso o executável fica em Releases, que aceita até 2 GB. O repositório
-> guarda só o código-fonte (1,5 MB).
+> Comprimido, o executável cai para 36 MB e cabe. O zip contém apenas o
+> `SpaceInvaders.exe` e um `LEIAME.txt`.
 
 ## Gerar o executável a partir do código
 
