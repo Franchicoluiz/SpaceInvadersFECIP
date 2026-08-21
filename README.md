@@ -2,9 +2,6 @@
 
 Recriação do clássico de 1978, feita em **Godot 4**.
 
-Port do [projeto original de Chuck5ta](https://github.com/Chuck5ta/Godot-Space-Invaders)
-(Godot 3.0, 2018), com os bugs corrigidos.
-
 ## Jogar
 
 1. Baixe **[SpaceInvaders-Windows.zip](https://github.com/Franchicoluiz/SpaceInvadersFECIP/raw/main/SpaceInvaders-Windows.zip)** (36 MB)
